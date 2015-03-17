@@ -1,30 +1,119 @@
 package ru.art_vt.katas.kata02;
 
-/**
- * Pure functional style is not applicable here (as it degenerates into ResursiveChopper)
- * Hence this is a simple functions implementation
- */
+import org.apache.commons.lang3.ArrayUtils;
+import ru.art_vt.katas.kata02.functional_framework.*;
+
+import java.util.Arrays;
+
 public class FunctionalChopper extends AbstractChopper
 {
-	final int SHOULD_MAKE_SLICE = -2;
-
 	public int chop(int needle, int[] haystack)
 	{
-		throw new RuntimeException("Not implemented yet");
+		return
+			new ReduceExecutor<Integer, ReduceAccumulator<Integer>>()
+				.execute(
+					ArrayUtils.toObject(haystack),
+					new ReduceAccumulator<Integer>(needle, 0, NOT_FOUND),
+					new BinarySearchReducer<Integer>()
+				)
+					.getResultIndex();
 	}
 
-	/**
-	 * @param needle
-	 * @param haystack
-	 * @return value >= 0 when found, NOT_FOUND when not found and SHOULD_MAKE_SLICE if array is yet too big to decide
-	 */
-	private int testSlice(int needle, int[] haystack)
+	private class ReduceAccumulator<E>
 	{
-		throw new RuntimeException("Not implemented yet");
+		private E needle;
+		private int firstItemOffset;
+		private int resultIndex;
+
+		private ReduceAccumulator(E needle, int firstItemOffset, int resultIndex) {
+			this.needle = needle;
+			this.firstItemOffset = firstItemOffset;
+			this.resultIndex = resultIndex;
+		}
+
+		public E getNeedle() {
+			return needle;
+		}
+
+		public int getFirstItemOffset() {
+			return firstItemOffset;
+		}
+
+		public int getResultIndex() {
+			return resultIndex;
+		}
+
+		public ReduceAccumulator<E> spawnNew(int firstItemOffset, int resultIndex) {
+			return
+				new ReduceAccumulator<E>(
+					this.needle,
+					firstItemOffset,
+					resultIndex
+				);
+		}
 	}
 
-	private int[] makeSlice(int needle, int[] haystack)
+	private class BinarySearchReducer<E extends Comparable<E>> implements IReducer<E, ReduceAccumulator<E>>
 	{
-		throw new RuntimeException("Not implemented yet");
+		@Override
+		public Pair<E[], ReduceAccumulator<E>> reduce(E[] items, ReduceAccumulator<E> accumulator) {
+			if (items.length > 1) {
+				if (items[items.length / 2].compareTo(accumulator.getNeedle()) > 0) {
+					return
+						new Pair<E[], ReduceAccumulator<E>>(
+							Arrays.copyOfRange(items, 0, items.length / 2),
+							accumulator.spawnNew(
+								accumulator.getFirstItemOffset(),
+								NOT_FOUND
+							)
+						);
+				} else {
+					return
+						new Pair<E[], ReduceAccumulator<E>>(
+							Arrays.copyOfRange(items, items.length / 2, items.length),
+							accumulator.spawnNew(
+								accumulator.getFirstItemOffset() + items.length / 2,
+								NOT_FOUND
+							)
+						);
+				}
+			} else if (items.length == 1) {
+				if (items[0] == accumulator.getNeedle()) {
+					return
+						new Pair<E[], ReduceAccumulator<E>>(
+							emptyArray(),
+							accumulator.spawnNew(
+								accumulator.getFirstItemOffset(),
+								accumulator.getFirstItemOffset()
+							)
+						);
+				} else {
+					return
+						new Pair<E[], ReduceAccumulator<E>>(
+							emptyArray(),
+							accumulator.spawnNew(
+								accumulator.getFirstItemOffset(),
+								NOT_FOUND
+							)
+						);
+				}
+			} else {
+				return
+					new Pair<E[], ReduceAccumulator<E>>(
+						emptyArray(),
+						accumulator.spawnNew(
+							accumulator.getFirstItemOffset(),
+							NOT_FOUND
+						)
+					);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private E[] emptyArray()
+		{
+			return (E[]) new Comparable[0];
+		}
 	}
 }
+

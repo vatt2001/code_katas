@@ -6,7 +6,7 @@ public class Kata02
 	{
 		testChop(new RecursiveChopper());
 		testChop(new LoopChopper());
-//		testChop(new StubChopper());
+		testChop(new FunctionalChopper());
 
 	}
 
