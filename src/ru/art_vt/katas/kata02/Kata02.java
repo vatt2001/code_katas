@@ -7,7 +7,8 @@ public class Kata02
 		testChop(new RecursiveChopper());
 		testChop(new LoopChopper());
 		testChop(new FunctionalChopper());
-
+		testChop(new ObjectOrientedChopper());
+		testChop(new PolymorphChopper());
 	}
 
 	private static void testChop(IChopper chopper)
